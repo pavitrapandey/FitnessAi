@@ -18,6 +18,7 @@ public class ActivityService {
     @Autowired
     private ActivityRepo activityRepo;
 
+    @Autowired
     private UserValidationService userValidationService;
 
     @Autowired
