@@ -1,10 +1,10 @@
-package com.fitU.aiFitness;
+package com.fitU.aiService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class AiFitnessApplicationTests {
+class AiServiceApplicationTests {
 
 	@Test
 	void contextLoads() {

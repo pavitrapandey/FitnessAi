@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.fitU</groupId>
-	<artifactId>aiFitness</artifactId>
+	<artifactId>aiService</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>aiFitness</name>
+	<name>aiService</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>

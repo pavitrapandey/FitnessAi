@@ -1,4 +1,4 @@
-package com.fitU.aiFitness;
+package com.fitU.aiService;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,10 +6,10 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-public class AiFitnessApplication {
+public class AiServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AiFitnessApplication.class, args);
+		SpringApplication.run(AiServiceApplication.class, args);
 	}
 
 }
