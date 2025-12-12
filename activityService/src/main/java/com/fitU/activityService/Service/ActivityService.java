@@ -8,6 +8,8 @@ import com.fitU.activityService.Repository.ActivityRepo;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -20,6 +22,11 @@ public class ActivityService {
 
     @Autowired
     private UserValidationService userValidationService;
+
+    private final KafkaTemplate<String, Activity> kafkaTemplate;
+
+    @Value("${kafka.topic.name}")
+    private String topicName;
 
     @Autowired
     private ModelMapper mapper;
@@ -42,8 +49,13 @@ public class ActivityService {
                 .notes(request.getNotes())
                 .additionalMetrics(request.getAdditionalMetrics())
                 .build();
-        activityRepo.save(activity);
-        return mapper.map(activity,ActivityResponse.class);
+       Activity savedActivity= activityRepo.save(activity);
+       try {
+           kafkaTemplate.send(topicName, savedActivity.getUserId(), savedActivity);
+       } catch (Exception e) {
+           e.printStackTrace();
+       }
+        return mapper.map(savedActivity,ActivityResponse.class);
     }
 
 

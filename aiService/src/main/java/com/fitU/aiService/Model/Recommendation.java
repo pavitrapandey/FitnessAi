@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@Document(collection = "recommendation")
+@Document(collection = "recommendations")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -22,7 +22,8 @@ public class Recommendation {
     private String id;
     private String userId;
     private String activityId;
-    private String recommendationType;
+    private String activityType;
+    private String recommendation;
     private List<String> suggestions;
     private List<String> improvement;
     private List<String> safety;

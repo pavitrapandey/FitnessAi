@@ -1,6 +1,9 @@
-package com.fitU.activityService.Model;
+package com.fitU.aiService.Model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -10,14 +13,12 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-@Document(collection = "activities")
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class Activity {
-
-    @Id
     private String id;
     private String userId;
     private ActivityType type;
@@ -28,7 +29,7 @@ public class Activity {
     private String notes;
 
     @Field("metrics")
-    private Map<String,Object> additionalMetrics;
+    private Map<String, Object> additionalMetrics;
 
     @CreatedDate
     private LocalDateTime createdAt;
