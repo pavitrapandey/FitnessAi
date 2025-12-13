@@ -7,5 +7,18 @@ public enum ActivityType {
     GYM,
     HIIT,
     STRETCHING,
-    YOGA
+    YOGA,
+    PILATES,
+    BOXING,
+
+    WALKING,
+    HIKING,
+    DANCING,
+    ROWING,
+    CROSSFIT,
+    MARTIAL_ARTS,
+    AEROBICS,
+    CLIMBING,
+    SKIPPING,
+    MEDITATION
 }
