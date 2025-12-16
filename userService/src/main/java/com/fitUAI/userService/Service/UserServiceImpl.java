@@ -24,7 +24,9 @@ public class UserServiceImpl implements UserService {
     public UserResponse registerUser(RegisterRequest registerRequest) {
         User user = new User();
         if (userRepo.existsByEmail(registerRequest.getEmail())) {
-            throw new UserAlreadyExistException("Email already exists");
+            User existUser=userRepo.findByEmail(registerRequest.getEmail());
+            UserResponse response=modelMapper.map(existUser, UserResponse.class);
+            return response;
         }
         user.setName(registerRequest.getName());
         user.setEmail(registerRequest.getEmail());
@@ -50,6 +52,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Boolean isExist(String userId) {
-        return userRepo.existsById(userId);
+        return userRepo.existsByKeyCloakId(userId);
     }
 }

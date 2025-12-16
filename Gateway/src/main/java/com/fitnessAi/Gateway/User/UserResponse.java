@@ -1,11 +1,11 @@
-package com.fitUAI.userService.Dto;
+package com.fitnessAi.Gateway.User;
 
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
-public class UserResponse{
+public class UserResponse {
     private String id;
     private String keyCloakId;
     private String name;
