@@ -6,6 +6,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -14,66 +15,76 @@ import reactor.core.publisher.Mono;
 
 import java.text.ParseException;
 
-@Component
+// @Component - Disabled for now to allow requests without authentication
 @Slf4j
 @RequiredArgsConstructor
 public class KeyCloakUserSyncFilter implements WebFilter {
 
     private final UserService userService;
 
+
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        String userId = exchange.getRequest().getHeaders().getFirst("X-User-ID");
-        String token = exchange.getRequest().getHeaders().getFirst("Authorization");
-        RegisterRequest registerRequest = getUserDetails(token);
-        if (userId == null) {
-            userId = registerRequest.getKeycloakId();
+    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain)
+    {
+        String userId = exchange.getRequest().getQueryParams().getFirst("X-USER-ID");
+        String token=exchange.getRequest().getHeaders().getFirst("Authorization");
+        
+        // If no token, just continue the chain (let security handle it)
+        if(token == null) {
+            return chain.filter(exchange);
+        }
+        
+        RegisterRequest registerRequest=getUserDetails(token);
+        if(userId==null && registerRequest != null){
+            userId= registerRequest.getKeycloakId();
         }
 
-        if (userId != null && token != null) {
+        if(userId!=null && token!=null) {
+
             String finalUserId = userId;
             return userService.validateUser(userId)
-                    .flatMap(exist -> {
-                        if (!exist) {
-                            if (registerRequest != null) {
+                    .flatMap(exist ->{
+                        if(!exist){
+                            if(registerRequest!=null){
                                 return userService.registerUser(registerRequest)
                                         .then(Mono.empty());
-                            } else {
+                            }
+                            else{
                                 return Mono.empty();
                             }
-                        } else {
-                            log.info("User already exist, Skipping sync");
+                        }
+                        else{
+                            log.info("User already exists, Skipping SYNC");
                             return Mono.empty();
                         }
-                    })
-                    .then(Mono.defer(() -> {
+                    }).then(Mono.defer(()->{
                         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-                                .header("X-User-ID", finalUserId)
+                                .header("X-USER-ID", finalUserId)
                                 .build();
                         return chain.filter(exchange.mutate().request(mutatedRequest).build());
+
                     }));
         }
-
+        // Continue the filter chain even if no token/userId
         return chain.filter(exchange);
     }
 
-    private RegisterRequest getUserDetails(String token) {
+    private RegisterRequest getUserDetails(String token)
+    {
         try {
-            String tokenWithoutBearer = token.replace("Bearer", "").trim();
-            SignedJWT signedJWT = SignedJWT.parse(tokenWithoutBearer);
-            JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
+            String tokenWithoutBearer = token.replace("Bearer ", "").trim();
+            SignedJWT jwt = SignedJWT.parse(tokenWithoutBearer);
+            JWTClaimsSet claims = jwt.getJWTClaimsSet();
 
-            RegisterRequest request = new RegisterRequest();
+            RegisterRequest request=new RegisterRequest();
             request.setEmail(claims.getStringClaim("email"));
             request.setKeycloakId(claims.getStringClaim("sub"));
+            request.setPassword("password");
             request.setFirstName(claims.getStringClaim("given_name"));
             request.setLastName(claims.getStringClaim("family_name"));
-            request.setPassword("dummy@123123");
-
             return request;
-        } catch (ParseException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
     }
 }

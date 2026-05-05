@@ -30,6 +30,7 @@ public class UserServiceImpl implements UserService {
         }
         user.setName(registerRequest.getName());
         user.setEmail(registerRequest.getEmail());
+        user.setKeyCloakId(registerRequest.getKeycloakId());
         user.setPassword(registerRequest.getPassword());
         user.setRole(UserRole.USER);
 

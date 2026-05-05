@@ -26,6 +26,10 @@ public class RecommendationController {
 
     @GetMapping("/activity/{activityId}")
     public ResponseEntity<Recommendation> getRecommendationByActivity(@PathVariable String activityId) {
-        return new ResponseEntity<>(recommendationService.getRecommendationByActivity(activityId), HttpStatus.OK);
+        Recommendation recommendation = recommendationService.getRecommendationByActivity(activityId);
+        if (recommendation == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(recommendation, HttpStatus.OK);
     }
 }

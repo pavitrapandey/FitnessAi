@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,9 +35,12 @@ public class ActivityService {
 
     public ActivityResponse trackActivity(ActivityRequest request) {
 
-        boolean isValid=userValidationService.validateUser(request.getUserId());
-        if(!isValid){
-            throw new UserNotFoundException("User not found");
+        // Skip user validation if userId is null or empty
+        if(request.getUserId() != null && !request.getUserId().isEmpty()) {
+            boolean isValid=userValidationService.validateUser(request.getUserId());
+            if(!isValid){
+                throw new UserNotFoundException("User not found");
+            }
         }
 
         Activity activity= Activity.builder()
@@ -58,5 +63,36 @@ public class ActivityService {
         return mapper.map(savedActivity,ActivityResponse.class);
     }
 
+    public List<ActivityResponse> getAllActivitiesByUserId(String userId) {
+        List<Activity> activities;
+        if(userId == null || userId.isEmpty()) {
+            // Return all activities if no userId specified
+            activities = activityRepo.findAll();
+        } else {
+            activities = activityRepo.findByUserId(userId);
+        }
+        return activities.stream()
+                .map(activity -> mapper.map(activity, ActivityResponse.class))
+                .collect(Collectors.toList());
+    }
+
+    public List<ActivityResponse> getAllActivities() {
+        List<Activity> activities = activityRepo.findAll();
+        return activities.stream()
+                .map(activity -> mapper.map(activity, ActivityResponse.class))
+                .collect(Collectors.toList());
+    }
+
+    public ActivityResponse getActivityById(String activityId) {
+        Activity activity = activityRepo.findById(activityId)
+                .orElseThrow(() -> new RuntimeException("Activity not found with id: " + activityId));
+        return mapper.map(activity, ActivityResponse.class);
+    }
+
+    public void deleteActivity(String activityId) {
+        Activity activity = activityRepo.findById(activityId)
+                .orElseThrow(() -> new RuntimeException("Activity not found with id: " + activityId));
+        activityRepo.delete(activity);
+    }
 
 }

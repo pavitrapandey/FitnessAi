@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # Keycloak OAuth2 Server
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.0
+    container_name: fitu-keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8181
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+      KC_HTTP_PORT: 8181
+      KC_HEALTH_ENABLED: true
+    command:
+      - start-dev
+    ports:
+      - "8181:8181"
+    depends_on:
+      - keycloak-db
+    networks:
+      - fitu-network
+
+  # Keycloak Database
+  keycloak-db:
+    image: postgres:15-alpine
+    container_name: fitu-keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    networks:
+      - fitu-network
+
+  # PostgreSQL for User Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: fitu-postgres
+    environment:
+      POSTGRES_DB: FitU-user
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pavitra07
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - fitu-network
+
+  # MongoDB for Activity and AI Services
+  mongodb:
+    image: mongo:7.0
+    container_name: fitu-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - fitu-network
+
+  # Zookeeper for Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: fitu-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - fitu-network
+
+  # Kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: fitu-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    networks:
+      - fitu-network
+
+volumes:
+  keycloak-db-data:
+  postgres-data:
+  mongodb-data:
+
+networks:
+  fitu-network:
+    driver: bridge
